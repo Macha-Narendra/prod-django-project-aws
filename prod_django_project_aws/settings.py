@@ -10,6 +10,19 @@ SECRET_KEY = env('SECRET_KEY', default='django-secret-key-for-dev')
 DEBUG = env('DEBUG', default=True)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 
+CSRF_COOKIE_SECURE = True
+CSRF_TRUSTED_ORIGINS = ["https://app.narendra-clouddevops.com"]
+SESSION_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+PYTHONUNBUFFERED = 1
+
+SECURE_PROXY_SSL_HEADER = (
+    "HTTP_X_FORWARDED_PROTO",
+    "https",
+)
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
