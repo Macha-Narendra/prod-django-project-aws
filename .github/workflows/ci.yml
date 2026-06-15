@@ -17,8 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     # Set Django settings module and ensure unbuffered Python output
     env:
-      DJANGO_SETTINGS_MODULE: prod-django-project-aws.settings
-      PYTHONUNBUFFERED: 1
+      PYTHONPATH: .
     steps:
       # Checkout the repository code
       - name: Checkout repository
