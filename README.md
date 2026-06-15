@@ -21,13 +21,20 @@ This repository contains a Django-based web application for Admins and Users to 
    ```bash
    pip install -r requirements.txt
    ```
-3. Run migrations and start dev server:
+3. Create a `.env` file from `.env.example`:
+   ```bash
+   copy .env.example .env   # Windows
+   cp .env.example .env     # macOS/Linux
+   ```
+   - Leave `DATABASE_URL` unset for local SQLite.
+   - Set `DATABASE_URL` for production PostgreSQL.
+4. Run migrations and start dev server:
    ```bash
    python manage.py migrate
    python manage.py createsuperuser
    python manage.py runserver
    ```
-4. Open `http://127.0.0.1:8000/`
+5. Open `http://127.0.0.1:8000/`
 
 ## Docker
 
@@ -40,7 +47,17 @@ docker run -p 8000:8000 django-prod-app
 
 ## GitHub Actions
 
-A CI workflow is included in `.github/workflows/ci.yml`.
+A CI workflow is included in `.github/workflows/ci.yml` and a CD workflow is included in `.github/workflows/cd.yml`.
+
+The CD workflow is designed to build and push a Docker image to AWS ECR and deploy the Helm chart to EKS. It requires the following repository secrets:
+
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_REGION`
+- `ECR_REGISTRY`
+- `ECR_REPOSITORY`
+- `EKS_CLUSTER_NAME`
+- `K8S_NAMESPACE`
 
 ## Deployments
 

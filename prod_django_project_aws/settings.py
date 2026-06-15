@@ -52,10 +52,24 @@ WSGI_APPLICATION = 'prod_django_project_aws.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': env('DATABASE_NAME', default='ecommerce'),
+        'USER': env('DATABASE_USER', default='ecommerce_user'),
+        'PASSWORD': env('DATABASE_PASSWORD', default='ecommerce_pass'),
+        'HOST': env('DATABASE_HOST', default='db'),
+        'PORT': env('DATABASE_PORT', default='5432'),
     }
 }
+
+# Development fallback to SQLite when DATABASE_NAME is not configured or
+# the PostgreSQL connection is unavailable.
+if env.bool('USE_SQLITE', default=False):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
