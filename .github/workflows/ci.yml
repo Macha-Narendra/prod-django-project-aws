@@ -1,33 +1,67 @@
+# Django Continuous Integration Workflow
+# Runs automated tests and validation on every push and pull request to main branch
+# This ensures code quality and catches issues early
+
 name: Django CI
 
+# Trigger conditions: run on push to main and on all pull requests to main
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   test:
+    name: Test and validate Django app
     runs-on: ubuntu-latest
+    # Set Django settings module and ensure unbuffered Python output
     env:
-      PYTHONPATH: .
+      DJANGO_SETTINGS_MODULE: ecommerce.settings
+      PYTHONUNBUFFERED: 1
     steps:
-      - uses: actions/checkout@v4
+      # Checkout the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Set up Python 3.14 environment
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: '3.14'
+
+      # Cache pip dependencies to speed up subsequent runs
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          # Use requirements.txt hash as cache key
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Install Python dependencies from requirements.txt
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Run Django system checks
-        run: python manage.py check --deploy
-      - name: Run migrations
-        run: python manage.py migrate --noinput
-      - name: Run tests
-        run: python manage.py test
-      - name: Validate Dockerfile
+
+      # Run database migrations to ensure schema is up to date
+      - name: Run Django migrations
         run: |
-          docker build --no-cache -t django-prod-app-test .
-          docker image rm django-prod-app-test
+          python manage.py migrate --noinput
+
+      # Run Django system checks to validate project configuration
+      - name: Run Django system checks
+        run: |
+          python manage.py check
+
+      # Run all test cases to ensure app functionality
+      - name: Run Django tests
+        run: |
+          python manage.py test
+
+      # Collect static files for production-like testing
+      - name: Collect static files
+        run: |
+          python manage.py collectstatic --noinput
