@@ -56,18 +56,18 @@ jobs:
           # Example: 5e9f0c8a3f2b1d6c9e4a7f0b1c3d6e9f0c8a3f2b
         run: |
           IMAGE_TAG=${GITHUB_SHA}
-          echo "Building and pushing image: $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG"
+          echo "Building and pushing image: $ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:$IMAGE_TAG"
           docker build \
-            -t $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG \
-            -t $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:latest .
-          docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:$IMAGE_TAG
-          docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:latest
+            -t $ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:$IMAGE_TAG \
+            -t $ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:latest .
+          docker push $ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:$IMAGE_TAG
+          docker push $ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:latest
 
       # Optional: Output summary info
       - name: Output image details
         run: |
           echo "Image successfully pushed to ECR"
-          echo "Repository: ${{ secrets.ECR_REPOSITORY }}"
+          echo "Repository: ${{ vars.ECR_REPOSITORY }}"
           echo "Tag: ${GITHUB_SHA}"
 
       # - name: Configure kubectl for EKS
@@ -80,7 +80,7 @@ jobs:
       # - name: Deploy Helm chart to EKS
       #   run: |
       #     helm upgrade --install django-app helm/django-app \
-      #       --namespace ${{ secrets.K8S_NAMESPACE }} \
+      #       --namespace ${{ vars.K8S_NAMESPACE }} \
       #       --create-namespace \
       #       --set image.repository=${{ env.IMAGE_REPOSITORY }} \
       #       --set image.tag=${{ env.IMAGE_TAG }}

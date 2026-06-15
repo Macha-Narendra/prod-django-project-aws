@@ -72,3 +72,5 @@ The CD workflow is designed to build and push a Docker image to AWS ECR and depl
 - Use Argo CD for GitOps deployment
 - Configure Prometheus and Grafana for metrics
 - Harden `settings.py` for production
+
+#ECR Document
