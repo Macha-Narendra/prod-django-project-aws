@@ -38,7 +38,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       # Login to AWS ECR (Elastic Container Registry)
       # This step authenticates and outputs the ECR registry URI
@@ -72,7 +72,7 @@ jobs:
 
       # - name: Configure kubectl for EKS
       #   run: |
-      #     aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.EKS_CLUSTER_NAME }}
+      #     aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER_NAME }}
 
       # - name: Install Helm
       #   uses: azure/setup-helm@v5
