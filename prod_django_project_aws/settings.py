@@ -76,7 +76,7 @@ DATABASES = {
 
 # Development fallback to SQLite when DATABASE_NAME is not configured or
 # the PostgreSQL connection is unavailable.
-if env.bool('USE_SQLITE', default=False):
+if env.bool('USE_SQLITE', default=True):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
