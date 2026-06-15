@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Products{% endblock %}
+{% block content %}
+<h1 class="title">Available Products</h1>
+<div class="columns is-multiline">
+    {% for product in products %}
+        <div class="column is-one-third">
+            <div class="box">
+                <h2 class="title is-4"><a href="{% url 'product_detail' product.pk %}">{{ product.name }}</a></h2>
+                <p>{{ product.description|truncatechars:120 }}</p>
+                <p class="has-text-weight-semibold">${{ product.price }}</p>
+                <p class="is-size-7 has-text-grey">Created by {{ product.created_by.username }} on {{ product.created_at|date:'M d, Y' }}</p>
+            </div>
+        </div>
+    {% empty %}
+        <div class="column">
+            <div class="notification is-warning">No products available yet.</div>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

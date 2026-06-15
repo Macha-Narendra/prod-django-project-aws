@@ -1,0 +1,33 @@
+- hosts: webservers
+  become: true
+  vars:
+    django_app_path: /opt/django-app
+  tasks:
+    - name: Ensure application directory exists
+      file:
+        path: "{{ django_app_path }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Install Python dependencies
+      apt:
+        name: python3-venv,python3-pip
+        state: present
+        update_cache: true
+
+    - name: Copy application code
+      copy:
+        src: .
+        dest: "{{ django_app_path }}"
+
+    - name: Create virtual environment
+      command: python3 -m venv {{ django_app_path }}/venv
+      args:
+        creates: "{{ django_app_path }}/venv/bin/activate"
+
+    - name: Install Python packages
+      command: "{{ django_app_path }}/venv/bin/pip install -r {{ django_app_path }}/requirements.txt"
+
+    - name: Run Django migrations
+      command: "{{ django_app_path }}/venv/bin/python {{ django_app_path }}/manage.py migrate"

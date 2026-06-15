@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Django Product App{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+<body>
+<section class="section">
+    <div class="container">
+        <nav class="navbar" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+                <a class="navbar-item" href="{% url 'product_list' %}">Django Product App</a>
+            </div>
+            <div class="navbar-menu">
+                <div class="navbar-start">
+                    <a class="navbar-item" href="{% url 'product_list' %}">Browse</a>
+                    {% if user.is_authenticated %}
+                        <a class="navbar-item" href="{% url 'product_create' %}">Create Product</a>
+                        <a class="navbar-item" href="{% url 'dashboard' %}">Dashboard</a>
+                    {% endif %}
+                </div>
+                <div class="navbar-end">
+                    <div class="navbar-item">
+                        <div class="buttons">
+                            {% if user.is_authenticated %}
+                                <span class="button is-light">Hi {{ user.username }}</span>
+                                <a class="button is-primary" href="{% url 'logout' %}">Logout</a>
+                            {% else %}
+                                <a class="button is-light" href="{% url 'login' %}">Login</a>
+                                <a class="button is-primary" href="{% url 'register' %}">Register</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        {% if messages %}
+            <div class="notification is-info">
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+</section>
+</body>
+</html>

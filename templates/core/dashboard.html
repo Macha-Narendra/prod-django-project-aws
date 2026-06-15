@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1 class="title">My Products</h1>
+{% if products %}
+    <div class="columns is-multiline">
+        {% for product in products %}
+            <div class="column is-half">
+                <div class="box">
+                    <h2 class="title is-5"><a href="{% url 'product_detail' product.pk %}">{{ product.name }}</a></h2>
+                    <p>{{ product.description|truncatechars:120 }}</p>
+                    <p class="has-text-weight-semibold">${{ product.price }}</p>
+                    <p class="is-size-7 has-text-grey">Status: {{ product.active|yesno:'Active,Inactive' }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="notification is-warning">
+        You haven't created any products yet. <a href="{% url 'product_create' %}">Add one now</a>.
+    </div>
+{% endif %}
+{% endblock %}
