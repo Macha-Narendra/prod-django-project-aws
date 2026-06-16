@@ -7,7 +7,7 @@ env = environ.Env(DEBUG=(bool, False))
 env.read_env(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = env('SECRET_KEY', default='django-secret-key-for-dev')
-DEBUG = env('DEBUG', default=True)
+DEBUG = env('DEBUG', default=False)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 
 CSRF_COOKIE_SECURE = True
@@ -76,7 +76,7 @@ DATABASES = {
 
 # Development fallback to SQLite when DATABASE_NAME is not configured or
 # the PostgreSQL connection is unavailable.
-if env.bool('USE_SQLITE', default=True):
+if env.bool('USE_SQLITE', default=False):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
