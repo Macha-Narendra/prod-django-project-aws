@@ -1,86 +1,116 @@
-# Docker Build and Push to AWS ECR Workflow
-# Automatically builds a Docker image and pushes it to AWS ECR on every push to main
-# Uses AWS OIDC for secure, keyless authentication (no hardcoded AWS credentials)
+name: Docker Build Push and GitOps Update
 
-name: Docker Build and Push
-
-# Trigger on push to main branch only (avoids building on every PR)
 on:
   push:
     branches:
       - master
 
-# Required permissions for GitHub OIDC token and reading repository contents
 permissions:
-  id-token: write  # Required for AWS OIDC authentication
-  contents: read   # Required to checkout repository code
+  id-token: write
+  contents: read
 
 jobs:
-  build-and-push:
-    name: Build Docker image and push to ECR
+  build-push-update:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repository code
+      #################################################
+      # Checkout Application Repository
+      #################################################
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Set up Docker Buildx for advanced Docker build capabilities
+      #################################################
+      # Docker Buildx
+      #################################################
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Configure AWS credentials using OpenID Connect (OIDC)
-      # This is secure and does not require storing AWS access keys
-      # Make sure you have:
-      # - AWS_ROLE_ARN variable set to your IAM role ARN
-      # - AWS_REGION variable set to your AWS region (e.g., us-east-1)
+      #################################################
+      # AWS Authentication using OIDC
+      #################################################
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      # Login to AWS ECR (Elastic Container Registry)
-      # This step authenticates and outputs the ECR registry URI
+      #################################################
+      # Login to ECR
+      #################################################
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      # Build Docker image and push to ECR
-      # Image is tagged with the full Git commit SHA (e.g., abc123def456...)
-      # This ensures each build is uniquely identifiable and traceable to a commit
-      - name: Build and push Docker image to ECR
+      #################################################
+      # Build and Push Docker Image
+      #################################################
+      - name: Build and push image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          # IMAGE_TAG uses Git commit SHA for traceability
-          # Example: 5e9f0c8a3f2b1d6c9e4a7f0b1c3d6e9f0c8a3f2b
         run: |
           IMAGE_TAG=${GITHUB_SHA}
-          echo "Building and pushing image: $ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:$IMAGE_TAG"
+
+          IMAGE_URI=$ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:$IMAGE_TAG
+
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
           docker build \
-            -t $ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:$IMAGE_TAG \
+            -t $IMAGE_URI \
             -t $ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:latest .
-          docker push $ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:$IMAGE_TAG
+
+          docker push $IMAGE_URI
           docker push $ECR_REGISTRY/${{ vars.ECR_REPOSITORY }}:latest
 
-      # Optional: Output summary info
-      - name: Output image details
+      #################################################
+      # Clone GitOps Repository
+      #################################################
+      - name: Clone GitOps Repository
         run: |
-          echo "Image successfully pushed to ECR"
-          echo "Repository: ${{ vars.ECR_REPOSITORY }}"
-          echo "Tag: ${GITHUB_SHA}"
+          git clone \
+          https://x-access-token:${{ secrets.GITOPS_TOKEN }}@github.com/${{ vars.GITOPS_REPO }}.git \
+          ecommerce-gitops
 
-      # - name: Configure kubectl for EKS
-      #   run: |
-      #     aws eks update-kubeconfig --region ${{ vars.AWS_REGION }} --name ${{ vars.EKS_CLUSTER_NAME }}
+      #################################################
+      # Update Helm values.yaml
+      #################################################
+      - name: Update image tag
+        run: |
+          cd ecommerce-gitops
 
-      # - name: Install Helm
-      #   uses: azure/setup-helm@v5
+          yq -i '
+            .image.repository = "'"${{ steps.login-ecr.outputs.registry }}/${{ vars.ECR_REPOSITORY }}"'" |
+            .image.tag = "'"${IMAGE_TAG}"'"
+          ' apps/ecommerce/ecommerce/values.yaml
 
-      # - name: Deploy Helm chart to EKS
-      #   run: |
-      #     helm upgrade --install django-app helm/django-app \
-      #       --namespace ${{ vars.K8S_NAMESPACE }} \
-      #       --create-namespace \
-      #       --set image.repository=${{ env.IMAGE_REPOSITORY }} \
-      #       --set image.tag=${{ env.IMAGE_TAG }}
+          echo "Updated values.yaml"
+
+          cat apps/ecommerce/ecommerce/values.yaml
+
+      #################################################
+      # Commit and Push Changes
+      #################################################
+      - name: Commit and Push GitOps Changes
+        run: |
+          cd ecommerce-gitops
+
+          git config user.name "Narendra"
+          git config user.email "Narendra.Babu@github.com"
+
+          git add .
+
+          git diff --cached --quiet && echo "No changes detected" && exit 0
+
+          git commit -m "Update image tag to ${IMAGE_TAG}"
+
+          git push origin ${{ vars.GITOPS_BRANCH }}
+
+      #################################################
+      # Summary
+      #################################################
+      - name: Deployment Summary
+        run: |
+          echo "Docker image pushed successfully"
+          echo "Image URI: $IMAGE_URI"
+          echo "GitOps repository updated"
