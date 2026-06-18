@@ -1,23 +1,122 @@
 {% extends 'base.html' %}
 {% block title %}Dashboard{% endblock %}
 {% block content %}
-<h1 class="title">My Products</h1>
-{% if products %}
-    <div class="columns is-multiline">
-        {% for product in products %}
-            <div class="column is-half">
-                <div class="box">
-                    <h2 class="title is-5"><a href="{% url 'product_detail' product.pk %}">{{ product.name }}</a></h2>
-                    <p>{{ product.description|truncatechars:120 }}</p>
-                    <p class="has-text-weight-semibold">${{ product.price }}</p>
-                    <p class="is-size-7 has-text-grey">Status: {{ product.active|yesno:'Active,Inactive' }}</p>
+<section class="page-shell dashboard-shell">
+    <div class="container">
+        <div class="workspace-band">
+            <div>
+                <p class="page-kicker">Workspace</p>
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">{{ total_products }} product{{ total_products|pluralize }} in your catalog.</p>
+            </div>
+            <div class="workspace-actions">
+                <a class="btn btn-primary" href="{% url 'product_create' %}">
+                    <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                    New Product
+                </a>
+                <a class="btn btn-outline-secondary" href="{% url 'product_list' %}">
+                    <i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>
+                    Browse
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-2 flex-nowrap mb-3 dashboard-stat-row">
+            <div class="col-4">
+                <div class="stat-card h-100">
+                    <span class="stat-icon is-blue"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                    <div>
+                        <p class="stat-label">Total</p>
+                        <p class="stat-value">{{ total_products }}</p>
+                    </div>
                 </div>
             </div>
-        {% endfor %}
+            <div class="col-4">
+                <div class="stat-card h-100">
+                    <span class="stat-icon is-green"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>
+                    <div>
+                        <p class="stat-label">Active</p>
+                        <p class="stat-value">{{ active_products }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card h-100">
+                    <span class="stat-icon is-amber"><i class="bi bi-pause-circle" aria-hidden="true"></i></span>
+                    <div>
+                        <p class="stat-label">Inactive</p>
+                        <p class="stat-value">{{ inactive_products }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if products %}
+            <div class="section-bar">
+                <div>
+                    <h2>Your products</h2>
+                    <p>{{ total_products }} item{{ total_products|pluralize }} sorted by newest first.</p>
+                </div>
+            </div>
+            <div class="table-panel">
+                <div class="table-responsive">
+                    <table class="table product-table align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th scope="col">Product</th>
+                            <th scope="col">Price</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Created</th>
+                            <th scope="col" class="text-end">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for product in products %}
+                            <tr>
+                                <td>
+                                    <div class="product-cell">
+                                        <span class="product-thumb">{{ product.name|first|upper }}</span>
+                                        <div>
+                                            <a class="product-title" href="{% url 'product_detail' product.pk %}">{{ product.name }}</a>
+                                            <div class="text-muted small">{{ product.description|default:'No description provided.'|truncatechars:90 }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="fw-bold">${{ product.price }}</td>
+                                <td>
+                                    {% if product.active %}
+                                        <span class="status-badge is-active"><i class="bi bi-check2-circle" aria-hidden="true"></i>Active</span>
+                                    {% else %}
+                                        <span class="status-badge is-inactive"><i class="bi bi-pause-circle" aria-hidden="true"></i>Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted">{{ product.created_at|date:'M d, Y' }}</td>
+                                <td>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a class="btn btn-outline-secondary btn-sm action-icon" href="{% url 'product_update' product.pk %}" aria-label="Edit {{ product.name }}">
+                                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                                        </a>
+                                        <a class="btn btn-outline-danger btn-sm action-icon" href="{% url 'product_delete' product.pk %}" aria-label="Delete {{ product.name }}">
+                                            <i class="bi bi-trash" aria-hidden="true"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="bi bi-box-seam" aria-hidden="true"></i>
+                <h2 class="h4">No products yet.</h2>
+                <a class="btn btn-primary mt-2" href="{% url 'product_create' %}">
+                    <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                    New Product
+                </a>
+            </div>
+        {% endif %}
     </div>
-{% else %}
-    <div class="notification is-warning">
-        You haven't created any products yet. <a href="{% url 'product_create' %}">Add one now</a>.
-    </div>
-{% endif %}
+</section>
 {% endblock %}

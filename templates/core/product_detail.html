@@ -1,10 +1,71 @@
 {% extends 'base.html' %}
 {% block title %}{{ product.name }}{% endblock %}
 {% block content %}
-<h1 class="title">{{ product.name }}</h1>
-<div class="box">
-    <p>{{ product.description }}</p>
-    <p class="has-text-weight-semibold">Price: ${{ product.price }}</p>
-    <p class="is-size-7 has-text-grey">Created by {{ product.created_by.username }} on {{ product.created_at|date:'M d, Y' }}</p>
-</div>
+<section class="page-shell">
+    <div class="container">
+        <div class="detail-hero">
+            <div class="detail-title-group">
+                <span class="product-thumb is-xl">{{ product.name|first|upper }}</span>
+                <div>
+                    <p class="page-kicker">Product</p>
+                    <h1 class="page-title">{{ product.name }}</h1>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <span class="status-badge {% if product.active %}is-active{% else %}is-inactive{% endif %}">
+                            {% if product.active %}
+                                <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                                Active
+                            {% else %}
+                                <i class="bi bi-pause-circle" aria-hidden="true"></i>
+                                Inactive
+                            {% endif %}
+                        </span>
+                        <span class="meta-pill">
+                            <i class="bi bi-person" aria-hidden="true"></i>
+                            {{ product.created_by.username }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% if user == product.created_by %}
+                <div class="d-flex flex-column flex-sm-row gap-2">
+                    <a class="btn btn-outline-secondary" href="{% url 'product_update' product.pk %}">
+                        <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                        Edit
+                    </a>
+                    <a class="btn btn-outline-danger" href="{% url 'product_delete' product.pk %}">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
+                        Delete
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="detail-layout">
+            <article class="detail-panel">
+                <div class="section-bar compact">
+                    <div>
+                        <h2>Description</h2>
+                    </div>
+                </div>
+                <p class="detail-description mb-0">{{ product.description|default:'No description provided.' }}</p>
+            </article>
+
+            <aside class="summary-panel">
+                <div class="summary-price">${{ product.price }}</div>
+                <div class="summary-row">
+                    <span><i class="bi bi-calendar-event" aria-hidden="true"></i> Created</span>
+                    <strong>{{ product.created_at|date:'M d, Y' }}</strong>
+                </div>
+                <div class="summary-row">
+                    <span><i class="bi bi-person" aria-hidden="true"></i> Owner</span>
+                    <strong>{{ product.created_by.username }}</strong>
+                </div>
+                <div class="summary-row">
+                    <span><i class="bi bi-activity" aria-hidden="true"></i> Status</span>
+                    <strong>{{ product.active|yesno:'Active,Inactive' }}</strong>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
 {% endblock %}

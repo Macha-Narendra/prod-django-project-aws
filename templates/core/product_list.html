@@ -1,21 +1,74 @@
 {% extends 'base.html' %}
 {% block title %}Products{% endblock %}
 {% block content %}
-<h1 class="title">Available Products</h1>
-<div class="columns is-multiline">
-    {% for product in products %}
-        <div class="column is-one-third">
-            <div class="box">
-                <h2 class="title is-4"><a href="{% url 'product_detail' product.pk %}">{{ product.name }}</a></h2>
-                <p>{{ product.description|truncatechars:120 }}</p>
-                <p class="has-text-weight-semibold">${{ product.price }}</p>
-                <p class="is-size-7 has-text-grey">Created by {{ product.created_by.username }} on {{ product.created_at|date:'M d, Y' }}</p>
+<section class="page-shell">
+    <div class="container">
+        <div class="catalog-band">
+            <div>
+                <p class="page-kicker">Marketplace</p>
+                <h1 class="page-title">Products</h1>
+                <p class="page-subtitle">{{ product_count }} active product{{ product_count|pluralize }} available.</p>
             </div>
+            {% if user.is_authenticated %}
+                <a class="btn btn-primary" href="{% url 'product_create' %}">
+                    <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                    New Product
+                </a>
+            {% endif %}
         </div>
+
+        <div class="product-grid">
+    {% for product in products %}
+            <article class="card product-card catalog-card">
+                <div class="card-body">
+                    <div class="product-card-top">
+                        <span class="product-thumb is-large">{{ product.name|first|upper }}</span>
+                        <span class="status-badge is-active">
+                            <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                            Active
+                        </span>
+                    </div>
+                    <h2 class="h4 mt-3 mb-2">
+                        <a class="product-title" href="{% url 'product_detail' product.pk %}">{{ product.name }}</a>
+                    </h2>
+                    <p class="product-description flex-grow-1">{{ product.description|default:'No description provided.'|truncatechars:140 }}</p>
+                    <div class="d-flex justify-content-between align-items-end gap-3 mt-3">
+                        <div>
+                            <div class="product-price">${{ product.price }}</div>
+                            <div class="meta-line">
+                                <i class="bi bi-person" aria-hidden="true"></i>
+                                {{ product.created_by.username }}
+                            </div>
+                        </div>
+                        <a class="btn btn-outline-primary btn-sm" href="{% url 'product_detail' product.pk %}">
+                            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                            View
+                        </a>
+                    </div>
+                    <div class="meta-line mt-3">
+                        <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                        {{ product.created_at|date:'M d, Y' }}
+                    </div>
+                </div>
+            </article>
     {% empty %}
-        <div class="column">
-            <div class="notification is-warning">No products available yet.</div>
-        </div>
+            <div class="empty-state">
+                <i class="bi bi-box-seam" aria-hidden="true"></i>
+                <h2 class="h4">No products available yet.</h2>
+                {% if user.is_authenticated %}
+                    <a class="btn btn-primary mt-2" href="{% url 'product_create' %}">
+                        <i class="bi bi-plus-circle" aria-hidden="true"></i>
+                        New Product
+                    </a>
+                {% else %}
+                    <a class="btn btn-primary mt-2" href="{% url 'register' %}">
+                        <i class="bi bi-person-plus" aria-hidden="true"></i>
+                        Register
+                    </a>
+                {% endif %}
+            </div>
     {% endfor %}
-</div>
+        </div>
+    </div>
+</section>
 {% endblock %}
