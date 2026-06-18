@@ -6,8 +6,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env(DEBUG=(bool, False))
 env.read_env(os.path.join(BASE_DIR, '.env'))
 
+DJANGO_ENV = env('DJANGO_ENV', default='development').lower()
+IS_PRODUCTION = DJANGO_ENV == 'production'
+
 SECRET_KEY = env('SECRET_KEY', default='django-secret-key-for-dev')
-DEBUG = env('DEBUG', default=False)
+DEBUG = env.bool('DEBUG', default=not IS_PRODUCTION)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['*'])
 
 CSRF_COOKIE_SECURE = True
@@ -63,20 +66,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'prod_django_project_aws.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('DB_NAME', default='ecommerce'),
-        'USER': env('DB_USER', default='ecommerce_user'),
-        'PASSWORD': env('DB_PASSWORD', default='ecommerce_pass'),
-        'HOST': env('DB_HOST', default='db'),
-        'PORT': env('DB_PORT', default='5432'),
-    }
-}
+# Database selection:
+# - Development uses SQLite by default.
+# - Production uses PostgreSQL when DJANGO_ENV=production.
+# - Development can opt into PostgreSQL with USE_POSTGRES=True.
+USE_POSTGRES = IS_PRODUCTION or env.bool('USE_POSTGRES', default=False)
 
-# Development fallback to SQLite when DATABASE_NAME is not configured or
-# the PostgreSQL connection is unavailable.
-if env.bool('USE_SQLITE', default=True):
+if USE_POSTGRES:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DB_NAME'),
+            'USER': env('DB_USER'),
+            'PASSWORD': env('DB_PASSWORD'),
+            'HOST': env('DB_HOST'),
+            'PORT': env('DB_PORT', default='5432'),
+        }
+    }
+else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',

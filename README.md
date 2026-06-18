@@ -26,8 +26,10 @@ This repository contains a Django-based web application for Admins and Users to 
    copy .env.example .env   # Windows
    cp .env.example .env     # macOS/Linux
    ```
-   - Leave `DATABASE_URL` unset for local SQLite.
-   - Set `DATABASE_URL` for production PostgreSQL.
+   - Local development uses SQLite by default.
+   - Set `DJANGO_ENV=production` for production PostgreSQL.
+   - Configure production PostgreSQL with `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, and `DB_PORT`.
+   - Optional: set `USE_POSTGRES=True` to test PostgreSQL in development.
 4. Run migrations and start dev server:
    ```bash
    python manage.py migrate
